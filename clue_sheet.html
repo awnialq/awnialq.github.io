@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detective's Notes — Deduction Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,700&family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17171a;
+    --oxblood:#6e1219;
+    --card:#dccfae;
+    --card-line:#bfae86;
+    --slate:#2b2e33;
+    --slate-deep:#212429;
+    --brass:#a6812e;
+    --red:#c0202a;
+    --display:"Bodoni Moda", "Didot", Georgia, serif;
+    --type:"Courier Prime", "Courier New", monospace;
+    --ui:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  [hidden]{display:none !important;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 50% -10%, #3a3e45 0%, var(--slate) 45%, var(--slate-deep) 100%);
+    min-height:100vh;
+    font-family:var(--ui);
+    color:var(--ink);
+    padding:28px 16px 64px;
+    -webkit-text-size-adjust:100%;
+  }
+
+  .pad{
+    max-width:940px;
+    margin:0 auto;
+    background:var(--card);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(110,18,25,.025) 0 1px, transparent 1px 4px);
+    border-radius:2px;
+    box-shadow:0 24px 60px rgba(0,0,0,.45), 0 2px 0 rgba(255,255,255,.06);
+    padding:34px 30px 30px;
+    position:relative;
+  }
+  .pad::after{
+    content:"";
+    position:absolute; inset:8px;
+    border:1px solid var(--card-line);
+    pointer-events:none;
+  }
+
+  .masthead{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:20px; flex-wrap:wrap;
+    border-bottom:3px double var(--oxblood);
+    padding-bottom:14px; margin-bottom:6px;
+  }
+  .eyebrow{
+    font-family:var(--type); font-size:11px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--oxblood); margin:0 0 6px;
+  }
+  .title{
+    font-family:var(--display); font-weight:700;
+    font-size:clamp(30px,6.5vw,52px); line-height:.9; margin:0;
+    letter-spacing:-.01em;
+  }
+  .title em{font-style:italic; font-weight:400;}
+  .keybox{
+    font-family:var(--type); font-size:11.5px; line-height:1.9;
+    text-align:right; color:#4a4238; white-space:nowrap;
+  }
+  .keybox b{color:var(--oxblood);}
+  .keybox b.x{color:var(--red); font-family:var(--ui); font-size:15px;}
+  .keybox b.dot{color:var(--ink);}
+
+  .controls{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    font-family:var(--type); font-size:11px; letter-spacing:.1em;
+    text-transform:uppercase; padding:12px 0 4px; color:#4a4238;
+  }
+  .controls button{
+    font:inherit; letter-spacing:.1em; text-transform:uppercase;
+    background:transparent; color:var(--oxblood);
+    border:1px solid var(--card-line); border-radius:1px;
+    padding:6px 12px; cursor:pointer;
+  }
+  .controls button:hover{background:rgba(110,18,25,.07); border-color:var(--oxblood);}
+  .controls button[disabled]{opacity:.35; cursor:default;}
+  .controls button[disabled]:hover{background:transparent; border-color:var(--card-line);}
+  .controls button:focus-visible, .cell:focus-visible, .seal:focus-visible,
+  .pname:focus-visible{outline:2px solid var(--oxblood); outline-offset:2px;}
+  .spacer{flex:1;}
+
+  .scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table{border-collapse:collapse; width:100%; min-width:620px;}
+
+  .cathead{
+    font-family:var(--type); font-size:11px; letter-spacing:.24em;
+    text-transform:uppercase; text-align:left; color:var(--card);
+    background:var(--oxblood); padding:5px 10px; margin:16px 8px 0 0;
+  }
+
+  th.corner{width:44%; min-width:190px; padding:0; vertical-align:bottom;}
+  th.pcol{width:9%; min-width:58px; padding:0 2px 6px; vertical-align:bottom;}
+  .pname{
+    width:100%; font-family:var(--type); font-size:11.5px;
+    text-align:center; background:transparent; color:var(--ink);
+    border:0; border-bottom:1px solid var(--card-line);
+    padding:5px 2px; letter-spacing:.04em;
+  }
+  .pname::placeholder{color:#9a8c6d;}
+
+  td.rowlab{
+    font-family:var(--type); font-size:13px; letter-spacing:.02em;
+    padding:0 8px 0 0; white-space:nowrap;
+    border-bottom:1px solid var(--card-line);
+  }
+  .labwrap{display:flex; align-items:center; gap:10px; height:34px;}
+  .seal{
+    flex:none; width:15px; height:15px; border-radius:50%;
+    border:1px solid var(--card-line); background:transparent;
+    cursor:pointer; padding:0;
+  }
+  .seal:hover{border-color:var(--oxblood);}
+  .seal[aria-pressed="true"]{
+    background:var(--oxblood); border-color:var(--oxblood);
+    box-shadow:0 0 0 2px rgba(110,18,25,.2);
+  }
+  .labtext{overflow:hidden; text-overflow:ellipsis;}
+  tr[data-locked="true"] .labtext{color:var(--oxblood); font-weight:700;}
+
+  td.cellwrap{border:1px solid var(--card-line); padding:0;}
+  .cell{
+    display:block; width:100%; height:34px;
+    background:transparent; border:0; cursor:pointer;
+    font-family:var(--display); font-size:17px; line-height:34px;
+    color:var(--ink);
+  }
+  .cell:hover{background:rgba(110,18,25,.06);}
+  .cell[data-state="no"]{
+    color:var(--red);
+    font-family:var(--ui);
+    font-weight:700;
+    font-size:22px;
+  }
+  .cell[data-state="yes"]{color:var(--ink); font-weight:700; font-size:19px;}
+  .cell[data-state="maybe"]{color:var(--brass); font-family:var(--type); font-weight:700;}
+
+  .accusation{
+    margin-top:26px; border-top:3px double var(--oxblood);
+    padding-top:16px;
+  }
+  .acc-label{
+    font-family:var(--type); font-size:11px; letter-spacing:.24em;
+    text-transform:uppercase; color:var(--oxblood); margin:0 0 8px;
+  }
+  .verdict{
+    font-family:var(--display); font-size:clamp(17px,3.4vw,26px);
+    line-height:1.5; margin:0; color:var(--ink);
+  }
+  .slot{
+    border-bottom:1.5px solid var(--oxblood);
+    padding:0 .35em; min-width:5.5em; display:inline-block;
+    text-align:center; font-style:italic;
+  }
+  .slot.empty{color:#9a8c6d; font-style:normal; font-family:var(--type); font-size:.62em;}
+  .hint{
+    font-family:var(--ui); font-size:12px; color:#5d5445; margin:10px 0 0;
+  }
+
+  @media (max-width:560px){
+    body{padding:14px 8px 40px;}
+    .pad{padding:24px 16px 20px;}
+    .keybox{text-align:left;}
+  }
+
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+
+  @media print{
+    body{background:#fff; padding:0;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .pad{box-shadow:none; background:#fff; max-width:none; padding:0;}
+    .pad::after{display:none;}
+    .controls, .hint{display:none;}
+    .cathead{background:#fff; color:#000; border-bottom:2px solid #000;}
+    .cell:hover{background:transparent;}
+  }
+</style>
+</head>
+<body>
+
+<main class="pad">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Confidential &middot; Case Notes</p>
+      <h1 class="title">Detective's <em>Notes</em></h1>
+    </div>
+    <div class="keybox">
+      Tap a box to mark it<br>
+      <b class="x">&times;</b> ruled out &nbsp; <b class="dot">&#9679;</b> confirmed &nbsp; <b>?</b> suspected<br>
+      Shift-tap steps back
+    </div>
+  </header>
+
+  <div class="controls">
+    <button type="button" id="fewer">&minus; Player</button>
+    <span id="pcount">6 players</span>
+    <button type="button" id="more">+ Player</button>
+    <span class="spacer"></span>
+    <button type="button" id="print">Print sheet</button>
+    <button type="button" id="clear">Clear sheet</button>
+  </div>
+
+  <div class="scroll">
+    <table id="grid"></table>
+  </div>
+
+  <section class="accusation">
+    <p class="acc-label">The Accusation</p>
+    <p class="verdict">
+      It was <span class="slot empty" id="v-suspect">suspect</span>
+      in the <span class="slot empty" id="v-room">room</span>
+      with the <span class="slot empty" id="v-weapon">weapon</span>.
+    </p>
+    <p class="hint">Click the circle beside a name to seal it into the accusation &mdash; one per category.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var MAX_PLAYERS = 6;
+  var MIN_PLAYERS = 2;
+
+  var CATEGORIES = [
+    { key:"suspect", label:"Suspects", items:["Miss Scarlett","Colonel Mustard","Dr. Orchid","Mr. Green","Mrs. Peacock","Professor Plum"] },
+    { key:"weapon",  label:"Weapons",  items:["Candlestick","Dagger","Lead Pipe","Revolver","Rope","Wrench"] },
+    { key:"room",    label:"Rooms",    items:["Kitchen","Ballroom","Conservatory","Dining Room","Billiard Room","Library","Lounge","Hall","Study"] }
+  ];
+
+  var STATES = ["", "no", "yes", "maybe"];
+  var GLYPH  = { "":"", "no":"\u00d7", "yes":"\u25cf", "maybe":"?" };
+  var WORD   = { "":"unmarked", "no":"ruled out", "yes":"confirmed", "maybe":"suspected" };
+
+  // --- state model: the DOM never owns anything ---
+  var players = MAX_PLAYERS;
+  var sealed  = { suspect:null, weapon:null, room:null };
+  var marks   = {};   // marks[catKey][item][playerIndex] = state
+  var names   = ["Me","","","","",""];
+
+  CATEGORIES.forEach(function(cat){
+    marks[cat.key] = {};
+    cat.items.forEach(function(item){
+      marks[cat.key][item] = new Array(MAX_PLAYERS).fill("");
+    });
+  });
+
+  // --- DOM references, built once ---
+  var grid    = document.getElementById("grid");
+  var cellEls = [];   // { cat, item, p, el }
+  var sealEls = [];   // { cat, item, btn, row }
+  var colEls  = [];   // every th/td that belongs to a player column
+
+  function build(){
+    grid.innerHTML = "";
+
+    CATEGORIES.forEach(function(cat, ci){
+      var body = document.createElement("tbody");
+
+      // header row
+      var head = document.createElement("tr");
+      var corner = document.createElement("th");
+      corner.className = "corner";
+      corner.scope = "col";
+      var bar = document.createElement("div");
+      bar.className = "cathead";
+      bar.textContent = cat.label;
+      corner.appendChild(bar);
+      head.appendChild(corner);
+
+      for(var p = 0; p < MAX_PLAYERS; p++){
+        var th = document.createElement("th");
+        th.className = "pcol";
+        th.scope = "col";
+        th.dataset.p = p;
+        colEls.push(th);
+
+        if(ci === 0){
+          var inp = document.createElement("input");
+          inp.className = "pname";
+          inp.type = "text";
+          inp.value = names[p];
+          inp.placeholder = "Player " + (p + 1);
+          inp.setAttribute("aria-label", "Name of player " + (p + 1));
+          (function(idx){
+            inp.addEventListener("input", function(e){ names[idx] = e.target.value; });
+          })(p);
+          th.appendChild(inp);
+        }
+        head.appendChild(th);
+      }
+      body.appendChild(head);
+
+      // item rows
+      cat.items.forEach(function(item){
+        var tr = document.createElement("tr");
+        tr.dataset.locked = "false";
+
+        var lab = document.createElement("td");
+        lab.className = "rowlab";
+        var wrap = document.createElement("div");
+        wrap.className = "labwrap";
+
+        var seal = document.createElement("button");
+        seal.type = "button";
+        seal.className = "seal";
+        seal.setAttribute("aria-pressed", "false");
+        seal.setAttribute("aria-label", "Seal " + item + " into the accusation");
+        seal.addEventListener("click", function(){
+          sealed[cat.key] = (sealed[cat.key] === item) ? null : item;
+          paintSeals();
+          paintVerdict();
+        });
+
+        var txt = document.createElement("span");
+        txt.className = "labtext";
+        txt.textContent = item;
+
+        wrap.appendChild(seal);
+        wrap.appendChild(txt);
+        lab.appendChild(wrap);
+        tr.appendChild(lab);
+
+        sealEls.push({ cat:cat.key, item:item, btn:seal, row:tr });
+
+        for(var p2 = 0; p2 < MAX_PLAYERS; p2++){
+          var td = document.createElement("td");
+          td.className = "cellwrap";
+          td.dataset.p = p2;
+          colEls.push(td);
+
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "cell";
+          b.dataset.state = "";
+
+          (function(catKey, itemName, idx, btn){
+            btn.addEventListener("click", function(e){ step(catKey, itemName, idx, e.shiftKey ? -1 : 1); });
+            btn.addEventListener("contextmenu", function(e){ e.preventDefault(); step(catKey, itemName, idx, -1); });
+            cellEls.push({ cat:catKey, item:itemName, p:idx, el:btn });
+          })(cat.key, item, p2, b);
+
+          td.appendChild(b);
+          tr.appendChild(td);
+        }
+        body.appendChild(tr);
+      });
+
+      grid.appendChild(body);
+    });
+  }
+
+  function step(catKey, item, p, dir){
+    var cur  = marks[catKey][item][p];
+    var next = STATES[(STATES.indexOf(cur) + dir + STATES.length) % STATES.length];
+    marks[catKey][item][p] = next;
+    paintCells();
+  }
+
+  function paintCells(){
+    cellEls.forEach(function(c){
+      var s = marks[c.cat][c.item][c.p];
+      if(c.el.dataset.state !== s || c.el.textContent !== GLYPH[s]){
+        c.el.dataset.state = s;
+        c.el.textContent = GLYPH[s];
+      }
+      c.el.setAttribute("aria-label", c.item + ", " + (names[c.p] || "player " + (c.p + 1)) + ": " + WORD[s]);
+    });
+  }
+
+  function paintSeals(){
+    sealEls.forEach(function(s){
+      var on = sealed[s.cat] === s.item;
+      s.btn.setAttribute("aria-pressed", on ? "true" : "false");
+      s.row.dataset.locked = on ? "true" : "false";
+    });
+  }
+
+  function paintVerdict(){
+    ["suspect","room","weapon"].forEach(function(k){
+      var el = document.getElementById("v-" + k);
+      if(sealed[k]){
+        el.textContent = sealed[k];
+        el.classList.remove("empty");
+      } else {
+        el.textContent = k;
+        el.classList.add("empty");
+      }
+    });
+  }
+
+  function paintColumns(){
+    colEls.forEach(function(el){
+      el.hidden = Number(el.dataset.p) >= players;
+    });
+    document.getElementById("pcount").textContent = players + " players";
+    document.getElementById("more").disabled  = players >= MAX_PLAYERS;
+    document.getElementById("fewer").disabled = players <= MIN_PLAYERS;
+  }
+
+  document.getElementById("more").addEventListener("click", function(){
+    if(players < MAX_PLAYERS){ players++; paintColumns(); }
+  });
+
+  document.getElementById("fewer").addEventListener("click", function(){
+    if(players > MIN_PLAYERS){ players--; paintColumns(); }
+  });
+
+  document.getElementById("clear").addEventListener("click", function(){
+    CATEGORIES.forEach(function(cat){
+      cat.items.forEach(function(item){
+        marks[cat.key][item] = new Array(MAX_PLAYERS).fill("");
+      });
+    });
+    sealed = { suspect:null, weapon:null, room:null };
+    paintCells();
+    paintSeals();
+    paintVerdict();
+  });
+
+  document.getElementById("print").addEventListener("click", function(){ window.print(); });
+
+  build();
+  paintCells();
+  paintSeals();
+  paintVerdict();
+  paintColumns();
+})();
+</script>
+</body>
+</html>
